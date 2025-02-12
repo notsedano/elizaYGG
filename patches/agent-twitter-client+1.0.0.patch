@@ -1,0 +1,28 @@
+// Create a patches directory if it doesn't exist
+// patches/agent-twitter-client+1.0.0.patch
+
+diff --git a/node_modules/agent-twitter-client/dist/node/esm/index.mjs b/node_modules/agent-twitter-client/dist/node/esm/index.mjs
+index 1234567..8901234 100644
+--- a/node_modules/agent-twitter-client/dist/node/esm/index.mjs
++++ b/node_modules/agent-twitter-client/dist/node/esm/index.mjs
+@@ -2308,7 +2308,19 @@ class Scraper {
+   async setCookies(cookies) {
+     try {
+       for (const cookie of cookies) {
+-        await this.cookieJar.setCookie(cookie, 'https://twitter.com');
++        // Parse the cookie string to modify domain
++        let cookieObj = cookie;
++        if (typeof cookie === 'string') {
++          const [nameValue, ...opts] = cookie.split(';');
++          cookieObj = nameValue + '; Domain=.twitter.com; Path=/';
++          if (opts.some(opt => opt.trim().toLowerCase() === 'secure')) {
++            cookieObj += '; Secure';
++          }
++          if (opts.some(opt => opt.trim().toLowerCase() === 'httponly')) {
++            cookieObj += '; HttpOnly';
++          }
++        }
++        await this.cookieJar.setCookie(cookieObj, 'https://twitter.com');
+       }
+     } catch (error) {
+       console.error('Error setting cookies:', error);
